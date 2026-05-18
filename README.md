@@ -23,25 +23,28 @@ The analysis includes:
 
 ```text
 .
-├── analysis/
-│   └── case5-multiple-regression.Rmd
-├── data/
-│   ├── forestfires.csv
-│   └── forestfires.names
-├── presentations/
-│   ├── case5-presentation.pdf
-│   ├── case5-presentation-v2.pdf
-│   └── editable/
-├── references/
-│   └── case-5-multiple-regression-in-biology-and-analytics.pdf
-├── reports/
-│   ├── case5-analysis-output.pdf
-│   ├── case5-multiple-regression-report.pdf
-│   ├── case5-qa-prep.pdf
-│   ├── case5-speaker-notes.pdf
-│   └── editable/
-├── LICENSE
-└── README.md
+|-- .gitattributes
+|-- .gitignore
+|-- CITATION.cff
+|-- LICENSE
+|-- README.md
+|-- analysis/
+|   `-- case5-multiple-regression.Rmd
+|-- data/
+|   |-- forestfires.csv
+|   `-- forestfires.names
+|-- presentations/
+|   |-- case5-presentation.pdf
+|   |-- case5-presentation-v2.pdf
+|   `-- editable/
+|-- references/
+|   `-- case-5-multiple-regression-in-biology-and-analytics.pdf
+`-- reports/
+    |-- case5-analysis-output.pdf
+    |-- case5-multiple-regression-report.pdf
+    |-- case5-qa-prep.pdf
+    |-- case5-speaker-notes.pdf
+    `-- editable/
 ```
 
 ## How I Run the Analysis
