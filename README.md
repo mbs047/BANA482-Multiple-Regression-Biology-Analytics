@@ -28,6 +28,7 @@ The analysis includes:
 |-- CITATION.cff
 |-- LICENSE
 |-- README.md
+|-- requirements.R
 |-- analysis/
 |   `-- case5-multiple-regression.Rmd
 |-- data/
@@ -57,19 +58,10 @@ analysis/case5-multiple-regression.Rmd
 
 The notebook reads the dataset from `data/forestfires.csv`. It works when I knit it from the `analysis/` folder or when I run it from the repository root.
 
-Required R packages:
+I install the required R packages with:
 
 ```r
-install.packages(c(
-  "dplyr",
-  "tidyr",
-  "tidyverse",
-  "car",
-  "MASS",
-  "caret",
-  "lmtest",
-  "GGally"
-))
+source("requirements.R")
 ```
 
 ## Dataset Citation
