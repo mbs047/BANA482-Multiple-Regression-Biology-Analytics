@@ -1,0 +1,282 @@
+---
+title: "Case 5 - Multiple Regression in Biology & Analytics"
+author: "Mohammed bin Salem"
+date: "`r Sys.Date()`"
+output:
+  word_document:
+    toc: true
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 5
+)
+```
+
+# 1. Introduction
+
+This case study examines how environmental conditions are associated with ecosystem stress using the **Forest Fires** dataset. The response variable is **burned area (`area`)**, which is used here as a proxy for environmental impact. The analysis applies multiple regression, diagnostic testing, model selection, and validation.
+
+# 2. Load Packages
+
+```{r packages}
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(car)
+library(MASS)
+library(caret)
+library(lmtest)
+library(GGally)
+```
+
+# 3. Load Data
+
+```{r load-data}
+# Update the path if your file is stored somewhere else
+fires <- read.csv("~/Library/CloudStorage/OneDrive-UAEUniversity/Uni/STAT 482/Case 5/forest+fires/forestfires.csv")
+
+# Quick inspection
+dim(fires)
+str(fires)
+summary(fires)
+head(fires)
+```
+
+# 4. Data Understanding and Cleaning
+
+## 4.1 Check missing values
+
+```{r missing-values}
+colSums(is.na(fires))
+```
+
+## 4.2 Convert categorical variables
+
+```{r factors}
+fires$month <- factor(fires$month,
+                      levels = c("jan", "feb", "mar", "apr", "may", "jun",
+                                 "jul", "aug", "sep", "oct", "nov", "dec"),
+                      ordered = TRUE)
+
+fires$day <- factor(fires$day,
+                    levels = c("mon", "tue", "wed", "thu", "fri", "sat", "sun"),
+                    ordered = TRUE)
+
+str(fires)
+```
+
+## 4.3 Check outliers
+
+```{r outliers-boxplots}
+numeric_vars <- fires %>%
+  dplyr::select(where(is.numeric))
+
+numeric_vars %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value") %>%
+  ggplot(aes(x = variable, y = value)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(title = "Boxplots of Numeric Variables")
+```
+
+## 4.4 Transform the response variable
+
+The variable `area` is heavily right-skewed, so we use `log(area + 1)`.
+
+```{r transform-response}
+fires$log_area <- log(fires$area + 1)
+
+par(mfrow = c(1, 2))
+hist(fires$area, main = "Original area", xlab = "area")
+hist(fires$log_area, main = "Log-transformed area", xlab = "log(area + 1)")
+par(mfrow = c(1, 1))
+```
+
+# 5. Exploratory Data Analysis
+
+## 5.1 Correlation among numeric variables
+
+```{r correlation-plot}
+cor_data <- fires %>%
+  dplyr::select(FFMC, DMC, DC, ISI, temp, RH, wind, rain, area, log_area)
+
+cor_matrix <- cor(cor_data, use = "complete.obs")
+round(cor_matrix, 2)
+
+GGally::ggcorr(cor_data, label = TRUE)
+```
+
+## 5.2 Scatterplots against the response
+
+```{r scatterplots}
+fires %>%
+  pivot_longer(cols = c(FFMC, DMC, DC, ISI, temp, RH, wind, rain),
+               names_to = "predictor",
+               values_to = "value") %>%
+  ggplot(aes(x = value, y = log_area)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~ predictor, scales = "free_x") +
+  labs(title = "Predictors vs Log Burned Area", y = "log(area + 1)")
+```
+
+# 6. Model Specification
+
+## 6.1 Full multiple regression model
+
+```{r full-model}
+full_model <- lm(log_area ~ FFMC + DMC + DC + ISI + temp + RH + wind + rain,
+                 data = fires)
+
+summary(full_model)
+```
+
+## 6.2 Optional model with categorical controls
+
+```{r model-with-time-controls}
+model_time <- lm(log_area ~ FFMC + DMC + DC + ISI + temp + RH + wind + rain + month + day,
+                 data = fires)
+
+summary(model_time)
+```
+
+## 6.3 Optional interaction example
+
+```{r interaction-model}
+model_interaction <- lm(log_area ~ FFMC + DMC + DC + ISI + temp * RH + wind + rain,
+                        data = fires)
+
+summary(model_interaction)
+```
+
+# 7. Multicollinearity Check
+
+```{r vif-check}
+vif(full_model)
+```
+
+Interpretation guideline:
+- VIF < 5: usually acceptable
+- VIF 5-10: moderate concern
+- VIF > 10: serious multicollinearity concern
+
+# 8. Model Diagnostics
+
+## 8.1 Residual plots
+
+```{r diagnostic-plots, fig.height=8, fig.width=8}
+par(mfrow = c(2, 2))
+plot(full_model)
+par(mfrow = c(1, 1))
+```
+
+## 8.2 Breusch-Pagan test for homoscedasticity
+
+```{r bp-test}
+bptest(full_model)
+```
+
+## 8.3 Normality check for residuals
+
+```{r qq-plot}
+{
+  qqnorm(resid(full_model))
+  qqline(resid(full_model))
+}
+shapiro.test(resid(full_model))
+```
+
+# 9. Model Selection
+
+## 9.1 Compare candidate models
+
+```{r compare-models}
+model_comparison <- tibble(
+  Model = c("Full Model", "Time Controls", "Interaction Model"),
+  Adjusted_R2 = c(summary(full_model)$adj.r.squared,
+                  summary(model_time)$adj.r.squared,
+                  summary(model_interaction)$adj.r.squared),
+  AIC = c(AIC(full_model), AIC(model_time), AIC(model_interaction)),
+  BIC = c(BIC(full_model), BIC(model_time), BIC(model_interaction))
+)
+
+model_comparison
+```
+
+## 9.2 Stepwise regression
+
+```{r stepwise-selection}
+step_model <- stepAIC(full_model, direction = "both", trace = FALSE)
+summary(step_model)
+AIC(step_model)
+BIC(step_model)
+```
+
+# 10. Validation
+
+## 10.1 Train/Test split
+
+```{r split-data}
+set.seed(202031137)
+train_index <- createDataPartition(fires$log_area, p = 0.80, list = FALSE)
+train_data <- fires[train_index, ]
+test_data  <- fires[-train_index, ]
+
+dim(train_data)
+dim(test_data)
+```
+
+## 10.2 Fit selected model on training data
+
+```{r train-model}
+train_model <- lm(log_area ~ FFMC + DMC + DC + ISI + temp + RH + wind + rain,
+                  data = train_data)
+summary(train_model)
+```
+
+## 10.3 Predict on test data
+
+```{r predictions}
+pred_log <- predict(train_model, newdata = test_data)
+
+rmse_value <- RMSE(pred_log, test_data$log_area)
+mae_value  <- MAE(pred_log, test_data$log_area)
+
+validation_results <- tibble(
+  Metric = c("RMSE", "MAE"),
+  Value = c(rmse_value, mae_value)
+)
+
+validation_results
+```
+
+# 11. Interpretation Template
+
+Use this section after running the model:
+
+- **Coefficient signs:** Explain whether each significant predictor increases or decreases expected `log(area + 1)`.
+- **Magnitude:** For each 1-unit increase in a predictor, the response changes by the corresponding coefficient, holding all other variables constant.
+- **Most influential factors:** Focus on predictors with statistically significant p-values and practical relevance.
+- **Biological meaning:** Relate factors such as temperature, humidity, rainfall, and drought indicators to ecosystem stress.
+- **Business implications:** Discuss implications for agricultural planning, wildfire risk mitigation, and controlled ecosystem management.
+
+# 12. Conclusion Template
+
+This analysis applies multiple regression to evaluate how environmental variables influence ecosystem impact. After checking assumptions, selecting the best model, and validating performance, the final model can be used to identify the most influential environmental drivers and support data-driven decision-making.
+
+# 13. Optional: Save Key Outputs
+
+```{r save-outputs, eval=FALSE}
+write.csv(model_comparison, "model_comparison.csv", row.names = FALSE)
+write.csv(validation_results, "validation_results.csv", row.names = FALSE)
+```
