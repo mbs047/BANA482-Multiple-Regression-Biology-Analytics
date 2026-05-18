@@ -1,5 +1,5 @@
 ---
-title: "BANA483 | Case 5 - Multiple Regression in Biology & Analytics"
+title: "BANA482 | Case 5 - Multiple Regression in Biology & Analytics"
 author: "Mohammed bin Salem"
 date: "`r Sys.Date()`"
 output:
