@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this case study, please cite it using this metadata."
+title: "BANA482 | Multiple Regression in Biology & Analytics"
+authors:
+  - family-names: "bin Salem"
+    given-names: "Mohammed"
+date-released: "2026-05-18"
+license: MIT
+repository-code: "https://github.com/mbs047/BANA482-Case-5-Multiple-Regression-in-Biology-and-Analytics"
+references:
+  - type: conference-paper
+    title: "A Data Mining Approach to Predict Forest Fires using Meteorological Data"
+    authors:
+      - family-names: "Cortez"
+        given-names: "Paulo"
+      - family-names: "Morais"
+        given-names: "Anibal"
+    year: 2007
+    conference:
+      name: "13th Portuguese Conference on Artificial Intelligence"
+    start: 512
+    end: 523
