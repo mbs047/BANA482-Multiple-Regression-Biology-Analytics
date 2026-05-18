@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# R session and workspace files
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# R Markdown generated folders
+*_cache/
+*_files/
+*.utf8.md
+*.knit.md
+
+# Local editor files
+.vscode/
+.idea/
+
+# Microsoft Office temporary files
+~$*
